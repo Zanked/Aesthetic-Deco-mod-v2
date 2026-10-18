@@ -1,0 +1,40 @@
+name: Build mod
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Unpack source archive
+        run: |
+          for f in *.zip; do
+            if [ -e "$f" ]; then unzip -q -o "$f"; fi
+          done
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: 8.10.2
+          build-root-directory: miniaturia_school_lockers
+
+      - name: Build
+        working-directory: miniaturia_school_lockers
+        run: gradle build --no-daemon
+
+      - name: Show jar contents
+        working-directory: miniaturia_school_lockers
+        run: unzip -l build/libs/*.jar | head -40
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: miniaturia_school_lockers
+          path: miniaturia_school_lockers/build/libs/*.jar
